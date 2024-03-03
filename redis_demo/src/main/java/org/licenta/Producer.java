@@ -5,10 +5,10 @@ import redis.clients.jedis.JedisPool;
 
 public class Producer {
     public static void main(String[] args) {
-        JedisPool pool = new JedisPool("redis", 6379);
+        JedisPool pool = new JedisPool("localhost", 6379);
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.sadd("list_test", "Test0", "asd");
+            jedis.rpush("list_test", "Test0", "asd");
         }
 
         System.out.println("Done producing messages...");
