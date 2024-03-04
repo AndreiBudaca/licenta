@@ -8,7 +8,7 @@ public class Producer {
         JedisPool pool = new JedisPool("localhost", 6379);
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.rpush("list_test", "Test0", "asd");
+            jedis.rpush("faas_input", "I can sleep");
         }
 
         System.out.println("Done producing messages...");
