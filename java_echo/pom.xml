@@ -30,7 +30,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        org.example.Main
+                                        org.faas.Main
                                     </mainClass>
                                 </manifest>
                             </archive>

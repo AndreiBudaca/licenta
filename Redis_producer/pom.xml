@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.licenta</groupId>
-    <artifactId>redis_demo_consumer</artifactId>
+    <groupId>org.example</groupId>
+    <artifactId>Redis_producer</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -30,7 +30,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        org.licenta.Consumer
+                                        org.example.Main
                                     </mainClass>
                                 </manifest>
                             </archive>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>5.0.0</version>
+            <version>5.1.1</version>
         </dependency>
 
         <dependency>
@@ -62,4 +62,5 @@
             <version>2.0.12</version>
         </dependency>
     </dependencies>
+
 </project>
