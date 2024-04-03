@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM openjdk:21-jdk
 
 ENV REDIS_HOST "redis"
 ENV REIDS_PORT "6379"
