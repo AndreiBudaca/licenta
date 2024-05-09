@@ -10,7 +10,8 @@ import java.net.MalformedURLException;
 
 public class Main {
     public static void main(String[] args)
-            throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException, MalformedURLException {
+            throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException,
+                IllegalAccessException, InstantiationException, MalformedURLException {
 
         for (String arg: args) {
             System.out.println(arg);
@@ -26,7 +27,6 @@ public class Main {
                 comm.sendMessage(result);
             } catch (Exception e) {
                 System.err.println(e.getMessage());
-                break;
             }
         }
     }

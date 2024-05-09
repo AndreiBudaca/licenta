@@ -13,14 +13,27 @@ public class RedisCommunication implements Communication {
         String redisHost = "localhost";
         String redisPort = "6379";
 
-        if (System.getenv("REDIS_HOST") != null)
-            redisHost = System.getenv("REDIS_HOST");
+        String redisConnection = null;
         if (System.getenv("REDIS_PORT") != null)
-            redisPort = System.getenv("REDIS_PORT");
+            redisConnection = System.getenv("REDIS_PORT");
+
+        if (redisConnection != null) {
+            String[] connectionInfo = redisConnection.split(":");
+            redisHost = connectionInfo[1].substring(2);
+            redisPort = connectionInfo[2];
+        }
+
         if (System.getenv("REDIS_INPUT") != null)
             inputQueue = System.getenv("REDIS_INPUT");
         if (System.getenv("REDIS_OUTPUT") != null)
             outputQueue = System.getenv("REDIS_OUTPUT");
+
+        System.out.println("REDIS CONFIG");
+        System.out.println("Redis host: " + redisHost);
+        System.out.println("Redis port: " + redisPort);
+        System.out.println("Input queue: " + inputQueue);
+        System.out.println("Output queue: " + outputQueue);
+        System.out.println();
 
         jedis = new Jedis(redisHost, Integer.parseInt(redisPort), 10);
     }

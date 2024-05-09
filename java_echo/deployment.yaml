@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-faas
+  labels:
+    app: echo-faas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-faas
+  template:
+    metadata:
+      labels:
+        app: echo-faas
+    spec:
+      containers:
+        - name: echo-faas
+          image: andreibudaca/echo_faas:latest
