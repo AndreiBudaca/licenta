@@ -6,6 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: task-dispacher
+  namespace: default
 roleRef:
   kind: Role 
   name: task-dispacher

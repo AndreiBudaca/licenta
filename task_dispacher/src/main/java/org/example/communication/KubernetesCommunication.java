@@ -12,10 +12,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class KubernetesCommunication {
+    private static final String NAMESPACE = "default";
 
     public KubernetesCommunication() {
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(System.in));
+
 
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
             Deployment deployment = new DeploymentBuilder()
@@ -44,14 +46,14 @@ public class KubernetesCommunication {
                     .endSpec()
                     .build();
 
-            deployment = client.apps().deployments().resource(deployment).create();
+            deployment = client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
             System.out.println("Created deployment: " + deployment);
 
             Thread.sleep(5000);
 
             System.out.println("Scaling up: " + deployment.getMetadata().getName());
-            client.apps().deployments().withName("nginx").scale(2, true);
-            System.out.println("Created replica sets: " + client.apps().replicaSets().list().getItems());
+            client.apps().deployments().inNamespace(NAMESPACE).withName("nginx").scale(2, true);
+            System.out.println("Created replica sets: " + client.apps().replicaSets().inNamespace(NAMESPACE).list().getItems());
 
             Thread.sleep(5000);
 
