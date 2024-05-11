@@ -2,15 +2,19 @@ package org.example;
 
 import io.kubernetes.client.openapi.ApiException;
 import org.example.communication.KubernetesCommunication;
-import org.example.communication.RedisCommunication;
-
-import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-        //RedisCommunication redis = RedisCommunication.getInstance();
         try {
-            KubernetesCommunication c = new KubernetesCommunication();
+            KubernetesCommunication c = new KubernetesCommunication("tunnel");
+
+            Thread.sleep(5000);
+
+            c.UpdateDeploymentReplicas(3);
+
+            Thread.sleep(5000);
+
+            c.deleteDeployment();
         }
         catch (ApiException e) {
             System.out.println(e.getMessage());
