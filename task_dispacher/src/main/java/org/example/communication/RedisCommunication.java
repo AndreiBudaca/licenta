@@ -7,39 +7,43 @@ import java.util.List;
 public class RedisCommunication {
     private final Jedis jedis;
 
-    private RedisCommunication() {
-        String redisHost = "localhost";
-        String redisPort = "38226";
+    public RedisCommunication(String faasName) {
+        EnvConfiguration.outputQueue = faasName;
 
-        String redisConnection = null;
-        if (System.getenv("REDIS_PORT") != null)
-            redisConnection = System.getenv("REDIS_PORT");
+        System.out.println("REDIS CONFIG");
+        System.out.println("Redis host: " + EnvConfiguration.redisHost);
+        System.out.println("Redis port: " + EnvConfiguration.redisPort);
+        System.out.println("Input queue: " + EnvConfiguration.inputQueue);
+        System.out.println("Output queue: " + EnvConfiguration.outputQueue);
+        System.out.println();
 
-        if (redisConnection != null) {
-            String[] connectionInfo = redisConnection.split(":");
-            redisHost = connectionInfo[1].substring(2);
-            redisPort = connectionInfo[2];
-        }
-
-        System.out.println("Host: " + redisHost);
-        System.out.println("Port: " + redisPort);
-
-        jedis = new Jedis(redisHost, Integer.parseInt(redisPort));
+        jedis = new Jedis(EnvConfiguration.redisHost, Integer.parseInt(EnvConfiguration.redisPort));
     }
 
-    public void sendMessage(String queueName, String message) {
-        jedis.rpush(queueName, message);
+    public void sendMessage(String message) {
+        jedis.rpush(EnvConfiguration.outputQueue, message);
     }
 
-    public List<String> getMessage(String... queueName) {
-        return jedis.blpop(60, queueName);
+    public List<String> getMessage() {
+        return jedis.blpop(1, EnvConfiguration.inputQueue);
     }
 
-    public static RedisCommunication getInstance() {
-        return HelperHolder.instance;
+    public long getOutputQueueLength() {
+        return jedis.llen(EnvConfiguration.outputQueue);
     }
 
-    private static class HelperHolder {
-        private static final RedisCommunication instance = new RedisCommunication();
+    private static class EnvConfiguration {
+        public final static String redisHost = System.getenv("REDIS_PORT") == null ?
+                "localhost" :
+                System.getenv("REDIS_PORT").split(":")[1].substring(2);
+
+        public final static String redisPort = System.getenv("REDIS_PORT") == null ?
+                "31381" :
+                System.getenv("REDIS_PORT").split(":")[2];
+
+        public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
+                "task_dispacher_input" : System.getenv("REDIS_INPUT");
+
+        public static String outputQueue = "tunnel";
     }
 }

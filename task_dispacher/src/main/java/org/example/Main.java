@@ -2,28 +2,65 @@ package org.example;
 
 import io.kubernetes.client.openapi.ApiException;
 import org.example.communication.KubernetesCommunication;
+import org.example.communication.RedisCommunication;
+import org.example.loadBalancing.QueueLengthLoadBalancer;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ApiException {
+        String faasName = generateFaasName();
+
+        RedisCommunication redis = new RedisCommunication(faasName);
+        KubernetesCommunication kube = new KubernetesCommunication(faasName);
+        QueueLengthLoadBalancer balancer = new QueueLengthLoadBalancer();
+
         try {
-            KubernetesCommunication c = new KubernetesCommunication("tunnel");
+            while(true) {
+                List<String> message = redis.getMessage();
 
-            Thread.sleep(5000);
+                if (message != null) {
+                    String messageBody = message.get(1);
+                    if (Objects.equals(messageBody, "quit")) break;
 
-            c.UpdateDeploymentReplicas(3);
+                    redis.sendMessage(messageBody);
+                }
 
-            Thread.sleep(5000);
+                long outputQueueLength = redis.getOutputQueueLength();
+                System.out.println("Queue length: " + outputQueueLength);
 
-            c.deleteDeployment();
+                int balanceDifference = balancer.balance(outputQueueLength);
+                if (balanceDifference != 0) {
+                    kube.updateDeploymentReplicas(balanceDifference);
+                }
+            }
         }
         catch (ApiException e) {
-            System.out.println(e.getMessage());
-            System.out.println(e.getCode());
-            System.out.println(e.getResponseBody());
+            System.err.println("An api error has occured!");
+            System.err.println(e.getMessage());
+            System.err.println(e.getCode());
+            System.err.println(e.getResponseBody());
         }
         catch (Exception e) {
-            System.out.println("An exception has occured");
-            System.out.println(e.getMessage());
+            System.err.println("An exception has occured");
+            System.err.println(e.getClass().getName());
+            System.err.println(e.getMessage());
         }
+        finally {
+            kube.deleteDeployment();
+        }
+    }
+
+    private static String generateFaasName() {
+        StringBuilder faasNameBuilder = new StringBuilder("faas-");
+        Random r = new Random();
+        for (int i = 0; i < 10; ++i) {
+            faasNameBuilder.append((char) ('a' + r.nextInt(26)));
+        }
+
+        return faasNameBuilder.toString();
     }
 }

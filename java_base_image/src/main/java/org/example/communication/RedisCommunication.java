@@ -13,12 +13,8 @@ public class RedisCommunication implements Communication {
         String redisHost = "localhost";
         String redisPort = "6379";
 
-        String redisConnection = null;
-        if (System.getenv("REDIS_PORT") != null)
-            redisConnection = System.getenv("REDIS_PORT");
-
-        if (redisConnection != null) {
-            String[] connectionInfo = redisConnection.split(":");
+        if (System.getenv("REDIS_PORT") != null) {
+            String[] connectionInfo = System.getenv("REDIS_PORT").split(":");
             redisHost = connectionInfo[1].substring(2);
             redisPort = connectionInfo[2];
         }
@@ -41,7 +37,7 @@ public class RedisCommunication implements Communication {
     @Override
     public String getMessage() {
         while (true) {
-            List<String> message = jedis.blpop(60, inputQueue);
+            List<String> message = jedis.blpop(0, inputQueue);
             if (message != null) return message.get(1);
         }
     }

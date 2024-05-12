@@ -3,9 +3,9 @@ package org.example;
 import redis.clients.jedis.Jedis;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         String redisHost = "localhost";
-        String redisPort = "6379";
+        String redisPort = "31381";
 
         if (System.getenv("REDIS_HOST") != null)
             redisHost = System.getenv("REDIS_HOST");
@@ -17,15 +17,8 @@ public class Main {
         Jedis jedis = new Jedis(redisHost, Integer.parseInt(redisPort), 1000);
 
         while (true) {
-            try {
-
-                for (int i = 0; i < 2147483647; ++i) {
-                    jedis.rpush("faas_input", "Message " + i);
-                }
-            }
-            catch (Exception e) {
-                System.out.println(e.getMessage() + ": " + System.currentTimeMillis());
-            }
+            jedis.rpush("task_dispacher_input", "Messaj de interes national!");
+            Thread.sleep(70);
         }
     }
 }
