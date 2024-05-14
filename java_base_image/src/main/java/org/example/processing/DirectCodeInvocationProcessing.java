@@ -33,7 +33,7 @@ public class DirectCodeInvocationProcessing implements Processing {
                 ClassLoader.getSystemClassLoader()
         );
 
-        Class processingClass = Class.forName(processingClassName, true, child);
+        Class<?> processingClass = Class.forName(processingClassName, true, child);
         faasMethod = processingClass.getMethod(processingMethodName, String.class);
 
         if (Modifier.isStatic(faasMethod.getModifiers())) {
@@ -41,7 +41,7 @@ public class DirectCodeInvocationProcessing implements Processing {
         }
         else {
             System.out.println("Creating an object...");
-            Constructor faasConstructor = processingClass.getConstructor();
+            Constructor<?> faasConstructor = processingClass.getConstructor();
             faasObject = faasConstructor.newInstance();
         }
     }

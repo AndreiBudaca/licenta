@@ -5,6 +5,7 @@ import org.example.communication.KubernetesCommunication;
 import org.example.communication.RedisCommunication;
 import org.example.loadBalancing.QueueLengthLoadBalancer;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +19,8 @@ public class Main {
         KubernetesCommunication kube = new KubernetesCommunication(faasName);
         QueueLengthLoadBalancer balancer = new QueueLengthLoadBalancer();
 
+        FileWriter logFile = new FileWriter("log_task_dispacher.txt");
+        int replicas = 1;
         try {
             while(true) {
                 List<String> message = redis.getMessage();
@@ -30,11 +33,15 @@ public class Main {
                 }
 
                 long outputQueueLength = redis.getOutputQueueLength();
-                System.out.println("Queue length: " + outputQueueLength);
+                //System.out.println("Queue length: " + outputQueueLength);
 
                 int balanceDifference = balancer.balance(outputQueueLength);
                 if (balanceDifference != 0) {
-                    kube.updateDeploymentReplicas(balanceDifference);
+                    replicas = kube.updateDeploymentReplicas(balanceDifference);
+                }
+
+                if (message != null) {
+                    logData(logFile, message.get(1), replicas);
                 }
             }
         }
@@ -51,6 +58,7 @@ public class Main {
         }
         finally {
             kube.deleteDeployment();
+            logFile.close();
         }
     }
 
@@ -62,5 +70,10 @@ public class Main {
         }
 
         return faasNameBuilder.toString();
+    }
+
+    private static void logData(FileWriter file, String message, int replicaCount) throws IOException {
+        int taskId = Integer.parseInt(message.split("\\.")[0]);
+        file.write(taskId + " " + replicaCount + '\n');
     }
 }

@@ -8,7 +8,7 @@ public class QueueLengthLoadBalancer {
     private long zeroStreak = 0;
 
     public int balance(long queueLength) {
-        long streakDecisionThreshold = 10;
+        long streakDecisionThreshold = 120;
         long maxQueueLength = 10;
 
         if (queueLength > maxQueueLength) {

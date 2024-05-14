@@ -24,6 +24,9 @@ public class KubernetesCommunication {
         Configuration.setDefaultApiClient(client);
         api = new AppsV1Api();
         faasDeployment = createDeployment(faasName);
+
+        System.out.println("Min faas replica: " + EnvConfiguration.minFaasReplica);
+        System.out.println("Max faas replica: " + EnvConfiguration.maxFaasReplica);
     }
 
 
@@ -34,15 +37,15 @@ public class KubernetesCommunication {
         System.out.println("Faas deployment deleted!");
     }
 
-    public void updateDeploymentReplicas(int difference) throws ApiException {
+    public int updateDeploymentReplicas(int difference) throws ApiException {
         int newReplica = faasDeployment.getSpec().getReplicas() + difference;
         if (newReplica < EnvConfiguration.minFaasReplica || newReplica > EnvConfiguration.maxFaasReplica) {
-            System.out.println("New replica outside range!");
-            return;
+            //System.out.println("New replica outside range!");
+            return faasDeployment.getSpec().getReplicas();
         }
 
-        System.out.println("Updating replicas with a difference of " + difference);
-        System.out.println("Replica count before: " + faasDeployment.getSpec().getReplicas());
+//        System.out.println("Updating replicas with a difference of " + difference);
+//        System.out.println("Replica count before: " + faasDeployment.getSpec().getReplicas());
 
         V1Patch body = new V1Patch("""
                 [
@@ -63,7 +66,9 @@ public class KubernetesCommunication {
                         null, null, null, null, null)
                 .getItems().get(0);
 
-        System.out.println("Replica count after: " + faasDeployment.getSpec().getReplicas());
+        // System.out.println("Replica count after: " + faasDeployment.getSpec().getReplicas());
+
+        return faasDeployment.getSpec().getReplicas();
     }
 
     private V1Deployment createDeployment(String faasName) throws ApiException {
@@ -158,6 +163,6 @@ public class KubernetesCommunication {
                 1 : Integer.parseInt(System.getenv("MIN_FASS_REPLICA"));
 
         public final static int maxFaasReplica = System.getenv("MAX_FASS_REPLICA") == null ?
-                5 : Integer.parseInt(System.getenv("MAX_FASS_REPLICA"));
+                100 : Integer.parseInt(System.getenv("MAX_FASS_REPLICA"));
     }
 }
