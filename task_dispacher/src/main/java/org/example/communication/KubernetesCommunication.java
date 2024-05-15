@@ -154,7 +154,7 @@ public class KubernetesCommunication {
                 "default" : System.getenv("FAAS_NAMESPACE");
 
         public final static String faasImage = System.getenv("FAAS_IMAGE") == null ?
-                "andreibudaca/echo_faas:latest" : System.getenv("FAAS_IMAGE");
+                "andreibudaca/echo_faas:1.0" : System.getenv("FAAS_IMAGE");
 
         public final static String faasRedisOutput = System.getenv("FAAS_REDIS_OUTPUT") == null ?
                 "faas_output" : System.getenv("FAAS_REDIS_OUTPUT");
