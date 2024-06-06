@@ -11,7 +11,7 @@ public class RedisCommunication implements Communication {
 
     public RedisCommunication() {
         String redisHost = "localhost";
-        String redisPort = "6379";
+        String redisPort = "31381";
 
         if (System.getenv("REDIS_PORT") != null) {
             String[] connectionInfo = System.getenv("REDIS_PORT").split(":");

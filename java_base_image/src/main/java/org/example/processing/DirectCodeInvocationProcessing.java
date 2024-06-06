@@ -21,7 +21,7 @@ public class DirectCodeInvocationProcessing implements Processing {
 
         String processingMethodName = System.getenv("FAAS_MAIN_METHOD");
         if (processingMethodName == null)
-            processingMethodName = "main";
+            processingMethodName = "echo";
 
         String processingJarFileName = System.getenv("FAAS_PATH");
         if (processingJarFileName == null)

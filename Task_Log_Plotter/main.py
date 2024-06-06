@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 
+xlabels = ['Task no', 'Task no', 'Task no']
+ylabels = ['Task deelay (ms)', 'Replica count', 'Total latency (ms)']
+
 
 def read_data(filename):
     values = []
@@ -15,8 +18,11 @@ def read_data(filename):
 
 def plot_data(x_data, y_data):
     fig, ax = plt.subplots(3)
+    fig.tight_layout(pad=1.0)
     for i in range(len(x_data)):
         ax[i].plot(x_data[i], y_data[i])
+        ax[i].set_xlabel(xlabels[i])
+        ax[i].set_ylabel(ylabels[i])
     plt.show()
 
 
