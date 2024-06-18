@@ -9,7 +9,7 @@ public class Main {
             agg.HandleTasks();
         }
         catch (Exception e) {
-            agg.StopHandlig();
+            agg.StopHandling();
         }
     }
 }

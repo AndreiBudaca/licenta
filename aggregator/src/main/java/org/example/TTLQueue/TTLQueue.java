@@ -27,13 +27,27 @@ public class TTLQueue<T extends TTLFindable<K>, K> {
     }
 
     public T findElement(K id) {
-        for (TTLElement<T, K> it: queue) {
-            if (it.hasIdentifier(id)) {
-                return it.getElement();
-            }
-        }
+        TTLElement<T, K> element = queue.stream().filter(it -> it.hasIdentifier(id)).findFirst().orElse(null);
 
-        return null;
+        if (element == null) return null;
+        return element.getElement();
+    }
+
+    public void updateElement(T element) {
+        TTLElement<T, K> queueElement = queue.stream()
+                .filter(it -> it.hasIdentifier(element.getIdentifier()))
+                .findFirst().orElse(null);
+
+        if (queueElement == null) return;
+
+        queue.remove(queueElement);
+        queue.add(new TTLElement<>(element, queueElement.getTtl()));
+    }
+
+    public void deleteElement(K id) {
+        queue.stream()
+                .filter(it -> it.hasIdentifier(id))
+                .findFirst().ifPresent(queue::remove);
     }
 
     public void stopHandling() {
