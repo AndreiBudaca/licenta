@@ -9,8 +9,8 @@ public class TaskExpiredHandler implements TTLElementHandler<Task> {
     private ConcurrentLinkedQueue<ConcludedTask> conclusionedTasks;
 
     public TaskExpiredHandler(TaskManager taskManager,
-                               ConcurrentLinkedQueue<ConcludedTask> conclusionedTasks) {
-        this.conclusionedTasks = conclusionedTasks;
+                               ConcurrentLinkedQueue<ConcludedTask> concludedTasks) {
+        this.conclusionedTasks = concludedTasks;
         this.taskManager = taskManager;
     }
 

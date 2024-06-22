@@ -31,6 +31,10 @@ if __name__ == '__main__':
     task_dispacher_logs = read_data("logs/log_task_dispacher.txt")
     consumer_log = read_data("logs/log_consumer.txt")
 
+    producer_log.sort(key=lambda x: x[0])
+    task_dispacher_logs.sort(key=lambda x: x[0])
+    consumer_log.sort(key=lambda x: x[0])
+
     log_x_data = [
         [x[0] for x in producer_log[1:]],
         [x[0] for x in task_dispacher_logs[1:]],
@@ -38,7 +42,7 @@ if __name__ == '__main__':
     ]
 
     log_y_data = [
-        [x[1] for x in producer_log[1:]],
+        [1000 / x[1] for x in producer_log[1:]],
         [x[1] for x in task_dispacher_logs[1:]],
         [-x[1] for x in consumer_log[1:]]
     ]

@@ -12,9 +12,9 @@ public class Main {
         String redisPort = "31381";
         String redisQueue = "task_dispacher_input";
 
-        int baseDelay = 10;
-        int minNoise = -5;
-        int maxNoise = 5;
+        int[] baseDelay = new int[] {5, 10, 20, 40, 20, 10, 5};
+        int minNoisePercent = 20;
+        int maxNoisePercent = 20;
         int messagesToSend = 10000;
         Random r = new Random();
 
@@ -33,8 +33,11 @@ public class Main {
 
             int taskId = 0;
             long lastTimestamp = System.currentTimeMillis();
-            for (int i = 0; i < messagesToSend; ++i){
-                int sleepValue = (int) (baseDelay + minNoise + (maxNoise - minNoise) * r.nextDouble());
+            for (int i = 0; i < messagesToSend; ++i) {
+                int bdIndex = (i * baseDelay.length) / messagesToSend;
+                int minNoise = - minNoisePercent * baseDelay[bdIndex] / 100;
+                int maxNoise = maxNoisePercent * baseDelay[bdIndex] / 100;
+                int sleepValue = (int) (baseDelay[bdIndex] + minNoise + (maxNoise - minNoise) * r.nextDouble());
                 long currentTimestamp = System.currentTimeMillis();
                 String message = taskId + "." + currentTimestamp + "." + payload;
                 jedis.rpush(redisQueue, message);
@@ -48,6 +51,5 @@ public class Main {
                 Thread.sleep(sleepValue);
             }
         }
-
     }
 }

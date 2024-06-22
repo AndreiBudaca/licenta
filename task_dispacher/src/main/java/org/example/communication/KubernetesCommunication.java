@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class KubernetesCommunication {
     private final AppsV1Api api;
-    private V1Deployment faasDeployment;
+    private final V1Deployment faasDeployment;
 
     public KubernetesCommunication(String faasName) throws IOException, ApiException {
         ApiClient client = System.getenv("REDIS_PORT") != null ?
@@ -38,11 +38,31 @@ public class KubernetesCommunication {
     }
 
     public int updateDeploymentReplicas(int difference) throws ApiException {
-        int newReplica = faasDeployment.getSpec().getReplicas() + difference;
-        if (newReplica < EnvConfiguration.minFaasReplica || newReplica > EnvConfiguration.maxFaasReplica) {
-            //System.out.println("New replica outside range!");
-            return faasDeployment.getSpec().getReplicas();
+        //if (difference < 2) return getFaasDeployment().getStatus().getAvailableReplicas();
+
+        V1Deployment deployment = getFaasDeployment();
+        if (deployment == null) return 0;
+
+        int newReplica = deployment.getStatus().getAvailableReplicas() + difference;
+
+        if (newReplica < EnvConfiguration.minFaasReplica) {
+            if (deployment.getStatus().getAvailableReplicas() != EnvConfiguration.minFaasReplica) {
+                //System.out.println("New replica outside range!");
+                newReplica = EnvConfiguration.minFaasReplica;
+            } else {
+                return EnvConfiguration.minFaasReplica;
+            }
         }
+
+        if (newReplica > EnvConfiguration.maxFaasReplica) {
+            if (deployment.getStatus().getAvailableReplicas() != EnvConfiguration.maxFaasReplica) {
+                newReplica = EnvConfiguration.maxFaasReplica;
+            }
+            else {
+                return EnvConfiguration.maxFaasReplica;
+            }
+        }
+
 
 //        System.out.println("Updating replicas with a difference of " + difference);
 //        System.out.println("Replica count before: " + faasDeployment.getSpec().getReplicas());
@@ -60,15 +80,25 @@ public class KubernetesCommunication {
         api.patchNamespacedDeployment(faasDeployment.getMetadata().getName(), EnvConfiguration.faasNamespace, body,
                 null, null, null, null, null);
 
-        faasDeployment = api.listNamespacedDeployment(EnvConfiguration.faasNamespace,
+        deployment = getFaasDeployment();
+        if (deployment == null) return 0;
+
+        return deployment.getStatus().getAvailableReplicas();
+    }
+
+    public Integer getActiveReplicaCount() throws ApiException {
+        V1Deployment deployment = getFaasDeployment();
+        if (deployment == null) return 0;
+
+        return deployment.getStatus().getAvailableReplicas();
+    }
+
+    private V1Deployment getFaasDeployment() throws ApiException {
+        return api.listNamespacedDeployment(EnvConfiguration.faasNamespace,
                         null, null, null, null,
                         "app=" + faasDeployment.getMetadata().getLabels().get("app"),
                         null, null, null, null, null)
-                .getItems().get(0);
-
-        // System.out.println("Replica count after: " + faasDeployment.getSpec().getReplicas());
-
-        return faasDeployment.getSpec().getReplicas();
+                .getItems().getFirst();
     }
 
     private V1Deployment createDeployment(String faasName) throws ApiException {
@@ -163,6 +193,6 @@ public class KubernetesCommunication {
                 1 : Integer.parseInt(System.getenv("MIN_FASS_REPLICA"));
 
         public final static int maxFaasReplica = System.getenv("MAX_FASS_REPLICA") == null ?
-                100 : Integer.parseInt(System.getenv("MAX_FASS_REPLICA"));
+                50 : Integer.parseInt(System.getenv("MAX_FASS_REPLICA"));
     }
 }

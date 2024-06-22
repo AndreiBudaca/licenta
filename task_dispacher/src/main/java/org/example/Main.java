@@ -3,7 +3,7 @@ package org.example;
 import io.kubernetes.client.openapi.ApiException;
 import org.example.communication.KubernetesCommunication;
 import org.example.communication.RedisCommunication;
-import org.example.loadBalancing.QueueLengthLoadBalancer;
+import org.example.loadBalancing.AsyncQueueObserverLoadBalancer;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,7 +17,8 @@ public class Main {
 
         RedisCommunication redis = new RedisCommunication(faasName);
         KubernetesCommunication kube = new KubernetesCommunication(faasName);
-        QueueLengthLoadBalancer balancer = new QueueLengthLoadBalancer();
+        //QueueLengthLoadBalancer balancer = new QueueLengthLoadBalancer();
+        AsyncQueueObserverLoadBalancer balancer = new AsyncQueueObserverLoadBalancer(faasName, kube);
 
         FileWriter logFile = new FileWriter("log_task_dispacher.txt");
         int replicas = 1;
@@ -30,19 +31,21 @@ public class Main {
                     if (Objects.equals(messageBody, "quit")) break;
 
                     redis.sendMessage(messageBody);
-                }
-
-                long outputQueueLength = redis.getOutputQueueLength();
-                //System.out.println("Queue length: " + outputQueueLength);
-
-                int balanceDifference = balancer.balance(outputQueueLength);
-                if (balanceDifference != 0) {
-                    replicas = kube.updateDeploymentReplicas(balanceDifference);
-                }
-
-                if (message != null) {
+                    balancer.incrementReceivedMessages();
+                    replicas = kube.getActiveReplicaCount();
                     logData(logFile, message.get(1), replicas);
                 }
+
+//                 long outputQueueLength = redis.getOutputQueueLength();
+//                 System.out.println("Queue length: " + outputQueueLength);
+//                int balanceDifference = balancer.balance(outputQueueLength);
+//                if (balanceDifference != 0) {
+//                    replicas = kube.updateDeploymentReplicas(balanceDifference);
+//                }
+//
+//                if (message != null) {
+//                    logData(logFile, message.get(1), replicas);
+//                }
             }
         }
         catch (ApiException e) {
@@ -59,6 +62,7 @@ public class Main {
         finally {
             kube.deleteDeployment();
             logFile.close();
+            balancer.stopBalancing();
         }
     }
 
