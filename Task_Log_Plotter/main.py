@@ -42,7 +42,7 @@ if __name__ == '__main__':
     ]
 
     log_y_data = [
-        [1000 / x[1] for x in producer_log[1:]],
+        [x[1] for x in producer_log[1:]],
         [x[1] for x in task_dispacher_logs[1:]],
         [-x[1] for x in consumer_log[1:]]
     ]

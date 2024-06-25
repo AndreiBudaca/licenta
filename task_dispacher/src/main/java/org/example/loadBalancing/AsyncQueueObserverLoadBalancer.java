@@ -17,8 +17,6 @@ public class AsyncQueueObserverLoadBalancer {
 
     private double measurements = 0;
 
-    private ScaleDecision lastDecision = ScaleDecision.Maintain;
-
     private boolean running = true;
 
     public AsyncQueueObserverLoadBalancer(String faasName, KubernetesCommunication kube) {
@@ -69,7 +67,8 @@ public class AsyncQueueObserverLoadBalancer {
         if (measurements == 0 || averageRequestsPerInstance == 0) {
             averageRequestsPerInstance = currentAverageRequestsPerInstance;
         } else if (currentAverageRequestsPerInstance != 0) {
-            averageRequestsPerInstance = measurements / (measurements + 1) * averageRequestsPerInstance + currentAverageRequestsPerInstance / (measurements + 1);
+            averageRequestsPerInstance = measurements / (measurements + 1) * averageRequestsPerInstance +
+                    currentAverageRequestsPerInstance / (measurements + 1);
         }
 
         // Take a penalty when the system is running too rich
@@ -103,30 +102,7 @@ public class AsyncQueueObserverLoadBalancer {
         // Filter small noise
         if (Math.abs(diff) < .1 / currentReplica) diff = 0;
 
-        // Compute the decision type
-        ScaleDecision decision = ScaleDecision.Maintain;
-        if (diff < 0) {
-            decision = lastDecision == ScaleDecision.Downscale || lastDecision == ScaleDecision.FirstDownscale ?
-                    ScaleDecision.Downscale :
-                    ScaleDecision.FirstDownscale;
-        }
-        else if (diff > 0) {
-            decision = lastDecision == ScaleDecision.Upscale || lastDecision == ScaleDecision.FirstUpscale ?
-                    ScaleDecision.Upscale :
-                    ScaleDecision.FirstUpscale;
-        }
-
-        // Try to no scale after downscale, or downscale after upscale to increase stability
-        if ((lastDecision == ScaleDecision.FirstUpscale && diff > 0) || (lastDecision == ScaleDecision.FirstDownscale && diff < 0)) diff = 0;
         return diff;
-    }
-
-    private enum ScaleDecision {
-        Upscale,
-        Downscale,
-        FirstUpscale,
-        FirstDownscale,
-        Maintain,
     }
 
     private static class EnvConfiguration {
