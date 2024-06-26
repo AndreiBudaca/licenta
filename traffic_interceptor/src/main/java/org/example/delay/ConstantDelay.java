@@ -2,22 +2,17 @@ package org.example.delay;
 
 import java.util.Random;
 
-public class ConstantDelay implements Delay{
+public class ConstantDelay extends Delay {
 
     private final int baseValue;
-    private final double noisePercent;
-    private final Random random;
 
-    public ConstantDelay(int baseValue, double noisePercent) {
+    public ConstantDelay(int baseValue, double noise) {
+        super(noise);
         this.baseValue = baseValue;
-        this.noisePercent = noisePercent;
-        random = new Random();
     }
 
     @Override
-    public int getNextDelay(double requestPercent) {
-        double noise = noisePercent * baseValue;
-
-        return (int) (baseValue + noise * (1 - 2 * random.nextDouble()));
+    protected double getBaseValue(double requestPercent) {
+        return baseValue;
     }
 }

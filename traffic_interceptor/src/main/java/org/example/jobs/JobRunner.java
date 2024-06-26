@@ -16,17 +16,22 @@ public class JobRunner {
     private boolean working = true;
     private ConcurrentLinkedQueue<Job> jobs;
     private final Random random;
+    private final Object lock;
 
     public JobRunner() {
         this.redis = new RedisCommunication();
         this.random = new Random();
         jobs = new ConcurrentLinkedQueue<>();
+        lock = new Object();
 
         new Thread(this::run).start();
     }
 
     public void schedule(Job job) {
         jobs.add(job);
+        synchronized (lock) {
+            lock.notify();
+        }
     }
 
     public void stop() {
@@ -37,11 +42,11 @@ public class JobRunner {
         while (working) {
             if (jobs.isEmpty()) {
                 try {
-                    Thread.sleep(500);
+                    lock.wait();
                 } catch (Exception e) {
                     System.out.println("Failed to wait for new job");
+                    continue;
                 }
-                continue;
             }
 
             Job job = jobs.poll();
@@ -52,29 +57,14 @@ public class JobRunner {
     private void executeJob(Job job) {
         if (job == null) return;
 
-        byte[] buffer = new byte[255];
-        StringBuilder builder = new StringBuilder();
-
         for (int i = 0; i < job.getRequests(); i++) {
             long currentTime = System.currentTimeMillis();
-            int jobId = random.nextInt();
-            random.nextBytes(buffer);
+            int taskId = random.nextInt();
 
-            redis.sendLog(String.format("%d%c%d", jobId, ModuleConfiguration.separator, currentTime));
+            redis.sendLog(String.format("%d %d", taskId, currentTime));
 
             for (RunningModule module : ModuleConfiguration.runningModules) {
-                builder.setLength(0);
-
-                builder.append(jobId);
-
-                for (int layer : module.getDataLayers()) {
-                    builder.append(ModuleConfiguration.separator);
-                    builder.append(layer);
-                    builder.append(ModuleConfiguration.separator);
-                    builder.append(new String(Base64.getEncoder().encode(buffer)));
-                }
-
-                redis.sendMessage(module.getQueueName(), builder.toString());
+                sendData(module, taskId);
             }
 
             long processingTime = System.currentTimeMillis() - currentTime;
@@ -86,5 +76,21 @@ public class JobRunner {
                 System.out.println("Failed to wait for new job");
             }
         }
+    }
+
+    private void sendData(RunningModule module, int taskId) {
+        StringBuilder builder = new StringBuilder();
+        byte[] buffer = new byte[255];
+        random.nextBytes(buffer);
+        builder.append(taskId);
+
+        for (int layer : module.getDataLayers()) {
+            builder.append(ModuleConfiguration.separator);
+            builder.append(layer);
+            builder.append(ModuleConfiguration.separator);
+            builder.append(new String(Base64.getEncoder().encode(buffer)));
+        }
+
+        redis.sendMessage(module.getQueueName(), builder.toString());
     }
 }

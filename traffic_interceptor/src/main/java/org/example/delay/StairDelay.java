@@ -2,22 +2,17 @@ package org.example.delay;
 
 import java.util.Random;
 
-public class StairDelay implements Delay {
+public class StairDelay extends Delay {
     private final int[] baseValues;
-    private final double noisePercent;
-    private final Random random;
 
-    public StairDelay(int[] baseValues, double noisePercent) {
+    public StairDelay(int[] baseValues, double noise) {
+        super(noise);
         this.baseValues = baseValues;
-        this.noisePercent = noisePercent;
-        random = new Random();
     }
 
     @Override
-    public int getNextDelay(double requestPercent) {
-        int bdIndex = (int)(requestPercent * baseValues.length);
-        double noise = noisePercent * baseValues[bdIndex];
-
-        return (int) (baseValues[bdIndex] + noise * (1 - 2 * random.nextDouble()));
+    protected double getBaseValue(double requestPercent) {
+        int index = Math.max((int)(requestPercent * baseValues.length), baseValues.length - 1);
+        return baseValues[index];
     }
 }

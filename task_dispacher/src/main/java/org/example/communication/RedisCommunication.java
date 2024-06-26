@@ -28,6 +28,10 @@ public class RedisCommunication {
         return jedis.blpop(1, EnvConfiguration.inputQueue);
     }
 
+    public void sendLog(String message) {
+        jedis.rpush(EnvConfiguration.logQueue, message);
+    }
+
     public long getOutputQueueLength() {
         return jedis.llen(EnvConfiguration.outputQueue);
     }
@@ -43,6 +47,9 @@ public class RedisCommunication {
 
         public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
                 "task_dispacher_input" : System.getenv("REDIS_INPUT");
+
+        public final static String logQueue = System.getenv("REDIS_LOG") == null ?
+                "logs" : System.getenv("REDIS_LOG");
 
         public static String outputQueue = "tunnel";
     }
