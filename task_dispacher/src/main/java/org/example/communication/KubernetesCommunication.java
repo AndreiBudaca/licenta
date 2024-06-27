@@ -47,7 +47,6 @@ public class KubernetesCommunication {
 
         if (newReplica < EnvConfiguration.minFaasReplica) {
             if (deployment.getStatus().getAvailableReplicas() != EnvConfiguration.minFaasReplica) {
-                //System.out.println("New replica outside range!");
                 newReplica = EnvConfiguration.minFaasReplica;
             } else {
                 return EnvConfiguration.minFaasReplica;
@@ -62,10 +61,6 @@ public class KubernetesCommunication {
                 return EnvConfiguration.maxFaasReplica;
             }
         }
-
-
-//        System.out.println("Updating replicas with a difference of " + difference);
-//        System.out.println("Replica count before: " + faasDeployment.getSpec().getReplicas());
 
         V1Patch body = new V1Patch("""
                 [

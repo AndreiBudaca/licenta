@@ -38,7 +38,6 @@ public class AsyncQueueObserverLoadBalancer {
         while (running) {
             try {
                 int diff = getScaleDifference();
-                //System.out.println("Difference: " + diff);
                 kube.updateDeploymentReplicas(diff);
                 Thread.sleep(EnvConfiguration.loadBalanceTime);
             } catch (ApiException e) {
@@ -73,7 +72,7 @@ public class AsyncQueueObserverLoadBalancer {
 
         // Take a penalty when the system is running too rich
         if (waitingMessages == 0 && lastWaitingMessages == 0 && messagesSinceLastBalance != 0) {
-            averageRequestsPerInstance *= 1.10;
+            averageRequestsPerInstance *= EnvConfiguration.penaltyPercentage;
         }
 
         int desiredReplica = averageRequestsPerInstance == 0 ?
@@ -81,17 +80,8 @@ public class AsyncQueueObserverLoadBalancer {
                 (int) Math.round((messagesSinceLastBalance + waitingMessages) / (averageRequestsPerInstance));
 
         lastWaitingMessages = waitingMessages;
-        if (measurements < 100 && averageRequestsPerInstance != 0)
+        if (measurements < EnvConfiguration.measurementsThreshold && averageRequestsPerInstance != 0)
             ++measurements;
-
-        System.out.println("Waiting messages: " + waitingMessages);
-        System.out.println("processedMessages: " + processedMessages);
-        System.out.println("messagesSinceLastBalance: " + messagesSinceLastBalance);
-        System.out.println("averageRequestsPerMilisecond: " + averageRequestsPerInstance);
-        System.out.println("bestReplica: " + ((messagesSinceLastBalance + waitingMessages) / (averageRequestsPerInstance)));
-        System.out.println("desiredReplica: " + desiredReplica);
-        System.out.println();
-        System.out.println();
 
         return getDiff(desiredReplica, currentReplica);
     }
@@ -100,7 +90,7 @@ public class AsyncQueueObserverLoadBalancer {
         int diff = desiredReplica - currentReplica;
 
         // Filter small noise
-        if (Math.abs(diff) < .1 / currentReplica) diff = 0;
+        if (Math.abs(diff) < EnvConfiguration.scalePercentage / currentReplica) diff = 0;
 
         return diff;
     }
@@ -108,5 +98,14 @@ public class AsyncQueueObserverLoadBalancer {
     private static class EnvConfiguration {
         public final static int loadBalanceTime = System.getenv("LOAD_BALANCE_TIME") == null ?
                 2000 : Integer.parseInt(System.getenv("LOAD_BALANCE_TIME"));
+
+        public final static int measurementsThreshold = System.getenv("MEASUREMENTS_THRESHOLD") == null ?
+                20 : Integer.parseInt(System.getenv("MEASUREMENTS_THRESHOLD"));
+
+        public final static double scalePercentage = System.getenv("SCALE_PERCENTAGE") == null ?
+                .1 : Double.parseDouble(System.getenv("SCALE_PERCENTAGE"));
+
+        public final static double penaltyPercentage = System.getenv("PENALTY_PERCENTAGE") == null ?
+                1.1 : Double.parseDouble(System.getenv("PENALTY_PERCENTAGE"));
     }
 }
