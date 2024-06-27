@@ -5,45 +5,53 @@ import redis.clients.jedis.Jedis;
 import java.util.List;
 
 public class RedisCommunication implements Communication {
-    private String inputQueue = "faas_input";
-    private String outputQueue = "faas_output";
     private final Jedis jedis;
 
     public RedisCommunication() {
-        String redisHost = "localhost";
-        String redisPort = "31381";
-
-        if (System.getenv("REDIS_PORT") != null) {
-            String[] connectionInfo = System.getenv("REDIS_PORT").split(":");
-            redisHost = connectionInfo[1].substring(2);
-            redisPort = connectionInfo[2];
-        }
-
-        if (System.getenv("REDIS_INPUT") != null)
-            inputQueue = System.getenv("REDIS_INPUT");
-        if (System.getenv("REDIS_OUTPUT") != null)
-            outputQueue = System.getenv("REDIS_OUTPUT");
-
         System.out.println("REDIS CONFIG");
-        System.out.println("Redis host: " + redisHost);
-        System.out.println("Redis port: " + redisPort);
-        System.out.println("Input queue: " + inputQueue);
-        System.out.println("Output queue: " + outputQueue);
+        System.out.println("Redis host: " + EnvConfiguration.redisHost);
+        System.out.println("Redis port: " + EnvConfiguration.redisPort);
+        System.out.println("Input queue: " + EnvConfiguration.inputQueue);
+        System.out.println("Output queue: " + EnvConfiguration.outputQueue);
         System.out.println();
 
-        jedis = new Jedis(redisHost, Integer.parseInt(redisPort), 10);
+        jedis = new Jedis(EnvConfiguration.redisHost, Integer.parseInt(EnvConfiguration.redisPort), 10);
     }
 
     @Override
     public String getMessage() {
         while (true) {
-            List<String> message = jedis.blpop(0, inputQueue);
+            List<String> message = jedis.blpop(0, EnvConfiguration.inputQueue);
             if (message != null) return message.get(1);
         }
     }
 
     @Override
     public void sendMessage(String message) {
-        jedis.rpush(outputQueue, message);
+        jedis.rpush(EnvConfiguration.outputQueue, message);
+    }
+
+    @Override
+    public void sendLog(String message) {
+        jedis.rpush(EnvConfiguration.logQueue, message);
+    }
+
+    private static class EnvConfiguration {
+        public final static String redisHost = System.getenv("REDIS_SERVICE_HOST") == null ?
+                "localhost" :
+                System.getenv("REDIS_SERVICE_HOST");
+
+        public final static String redisPort = System.getenv("REDIS_SERVICE_PORT") == null ?
+                "31381" :
+                System.getenv("REDIS_SERVICE_PORT");
+
+        public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
+                "faas_input" : System.getenv("REDIS_INPUT");
+
+        public final static String outputQueue = System.getenv("REDIS_OUTPUT") == null ?
+                "faas_output" : System.getenv("REDIS_OUTPUT");
+
+        public final static String logQueue = System.getenv("REDIS_LOG") == null ?
+                "logs" : System.getenv("REDIS_LOG");
     }
 }

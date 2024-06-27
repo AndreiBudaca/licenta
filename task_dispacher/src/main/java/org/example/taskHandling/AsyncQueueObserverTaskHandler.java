@@ -24,7 +24,7 @@ public class AsyncQueueObserverTaskHandler implements TaskHandler{
                 String messageBody = message.get(1);
                 if (Objects.equals(messageBody, "quit")) break;
 
-                redis.sendMessage(messageBody);
+                redis.sendMessage(String.format("%s;%s", faasName, messageBody));
                 balancer.incrementReceivedMessages();
                 try {
                     int taskId = Integer.parseInt(messageBody.split(";")[0]);

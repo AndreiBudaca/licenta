@@ -37,13 +37,13 @@ public class RedisCommunication {
     }
 
     private static class EnvConfiguration {
-        public final static String redisHost = System.getenv("REDIS_PORT") == null ?
+        public final static String redisHost = System.getenv("REDIS_SERVICE_HOST") == null ?
                 "localhost" :
-                System.getenv("REDIS_PORT").split(":")[1].substring(2);
+                System.getenv("REDIS_SERVICE_HOST");
 
-        public final static String redisPort = System.getenv("REDIS_PORT") == null ?
+        public final static String redisPort = System.getenv("REDIS_SERVICE_PORT") == null ?
                 "31381" :
-                System.getenv("REDIS_PORT").split(":")[2];
+                System.getenv("REDIS_SERVICE_PORT");
 
         public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
                 "task_dispacher_input" : System.getenv("REDIS_INPUT");

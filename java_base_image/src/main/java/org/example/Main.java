@@ -9,33 +9,38 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.util.Objects;
 
 public class Main {
     public static void main(String[] args)
             throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException,
             IllegalAccessException, InstantiationException, IOException {
 
-        long initialTime = System.currentTimeMillis();
 
         Communication comm = new RedisCommunication();
         Processing processing = new DirectCodeInvocationProcessing();
 
-        long endTime = System.currentTimeMillis();
 
-        try (FileWriter logFile = new FileWriter("log_consumer.txt")) {
-            logFile.append(1 + " " + (endTime - initialTime));
+        while (true) {
+            try {
+                String message = comm.getMessage();
+                if (Objects.equals(message, "quit")) break;
+
+                long initialTime = System.currentTimeMillis();
+
+                String[] messageBits = message.split(";", 3);
+
+                String faasName = messageBits[0];
+                int taskId = Integer.parseInt(messageBits[1]);
+                String result = processing.process(messageBits[2]);
+
+                long endTime = System.currentTimeMillis();
+
+                comm.sendLog(String.format("%d %s result %s", taskId, faasName, result));
+                comm.sendLog(String.format("%d %s processing_time %d", taskId, faasName, (endTime - initialTime)));
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
         }
-
-        return;
-
-//        while (true) {
-//            try {
-//                String message = comm.getMessage();
-//                String result = processing.process(message);
-//                comm.sendMessage(result);
-//            } catch (Exception e) {
-//                System.err.println(e.getMessage());
-//            }
-//        }
     }
 }
