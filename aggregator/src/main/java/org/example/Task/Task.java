@@ -9,17 +9,20 @@ public class Task implements TTLFindable<Integer> {
     private final int id;
     private double trust;
     private final List<String> voters;
+    private final List<Double> votes;
 
     public Task(int id, double trust) {
         this.id = id;
         this.trust = trust;
         this.voters = new ArrayList<>();
+        this.votes = new ArrayList<>();
     }
 
-    public Task(int id, double trust, List<String> voters) {
+    public Task(int id, double trust, List<String> voters, List<Double> votes) {
         this.id = id;
         this.trust = trust;
         this.voters = voters;
+        this.votes = votes;
     }
 
     public double getTrust() {
@@ -28,6 +31,10 @@ public class Task implements TTLFindable<Integer> {
 
     public List<String> getVoters() {
         return voters;
+    }
+
+    public List<Double> getVotes() {
+        return votes;
     }
 
     public void setTrust(double trust) {

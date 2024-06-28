@@ -1,11 +1,12 @@
 package org.example.Task;
 
-public class ConcludedTask extends Task{
+import java.util.List;
 
+public class ConcludedTask extends Task{
     private TaskDecision taskDecision;
 
-    public ConcludedTask(int id, double trust, TaskDecision taskDecision) {
-        super(id, trust);
+    public ConcludedTask(int id, double trust, List<String> voters, List<Double> votes, TaskDecision taskDecision) {
+        super(id, trust, voters, votes);
         this.taskDecision = taskDecision;
     }
 

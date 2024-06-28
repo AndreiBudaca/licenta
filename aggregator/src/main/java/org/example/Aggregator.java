@@ -20,7 +20,7 @@ public class Aggregator {
         taskManager = new TaskManager();
         conclusionedTasks = new ConcurrentLinkedQueue<>();
 
-        TaskExpiredHandler taskExpiredHandler = new TaskExpiredHandler(taskManager, redis, conclusionedTasks);
+        TaskExpiredHandler taskExpiredHandler = new TaskExpiredHandler(taskManager, conclusionedTasks, redis);
         activeQueue = new TTLQueue<>(EnvConfiguration.taskTTL, EnvConfiguration.maxActiveTasks, taskExpiredHandler);
     }
 
@@ -45,15 +45,16 @@ public class Aggregator {
                     Task updatedTask = taskManager.updateTask(concludedTask, taskVote);
                     conclusionedTasks.remove(concludedTask);
 
+                    // If a final verdict can be made, compute it and send it
                     if (taskManager.canGiveFinalVerdict(updatedTask)) {
                         ConcludedTask finalVerdict = taskManager.giveFinalVerdict(updatedTask);
 
-                        if (finalVerdict.getTaskDecision() != concludedTask.getTaskDecision()) {
-                            // TODO: send task to output queue
-                        }
+                        redis.sendTask(finalVerdict, taskManager.getWeights(), false);
                     }
+                    // Else, put the task back into the conclusioned task queue
                     else {
-                        conclusionedTasks.add(new ConcludedTask(updatedTask.getIdentifier(), updatedTask.getTrust(), concludedTask.getTaskDecision()));
+                        conclusionedTasks.add(new ConcludedTask(updatedTask.getIdentifier(), updatedTask.getTrust(), updatedTask.getVoters(),
+                                updatedTask.getVotes(), concludedTask.getTaskDecision()));
                     }
                 }
                 else {
@@ -61,7 +62,15 @@ public class Aggregator {
                     if (taskManager.canGiveFinalVerdict(updatedTask)) {
                         activeQueue.deleteElement(updatedTask.getIdentifier());
                         ConcludedTask concludedTask = taskManager.giveFinalVerdict(updatedTask);
-                        // TODO: send task to output queue
+
+                        redis.sendTask(concludedTask, taskManager.getWeights(), false);
+                    } else if (taskManager.canGivePartialVerdict(updatedTask)) {
+                        ConcludedTask partialVerdict = taskManager.givPartialVerdict(updatedTask);
+
+                        redis.sendTask(partialVerdict, null, true);
+
+                        conclusionedTasks.add(new ConcludedTask(partialVerdict.getIdentifier(), partialVerdict.getTrust(), partialVerdict.getVoters(),
+                                partialVerdict.getVotes(), partialVerdict.getTaskDecision()));
                     }
                     else {
                         activeQueue.updateElement(updatedTask);
@@ -69,7 +78,19 @@ public class Aggregator {
                 }
             }
             else if (Objects.equals(message.getFirst(), EnvConfiguration.taskAlertQueue)) {
-                activeQueue.addElement(TaskMapper.taskFromTaskAlert(message.get(1)));
+                Task newTask = TaskMapper.taskFromTaskAlert(message.get(1));
+                activeQueue.addElement(newTask);
+                redis.logNewTask(newTask.getIdentifier());
+            }
+            else if (Objects.equals(message.getFirst(), EnvConfiguration.configQueue)) {
+                if (Objects.equals(message.get(1), "quit")) break;
+
+                String[] messageBits = message.get(1).split(";");
+                if (Objects.equals(messageBits[0], "add_module")) {
+                    taskManager.addVoter(messageBits[1]);
+                } else if (Objects.equals(messageBits[0], "delete_module")) {
+                    taskManager.deleteVote(messageBits[1]);
+                }
             }
         }
     }
@@ -84,6 +105,9 @@ public class Aggregator {
 
         public final static String taskAlertQueue = System.getenv("REDIS_TASK_ALERT") == null ?
                 "task_alert" : System.getenv("REDIS_TASK_ALERT");
+
+        public final static String configQueue = System.getenv("REDIS_CONFIG") == null ?
+                "aggregator_config" : System.getenv("REDIS_CONFIG");
 
         public final static int taskTTL = System.getenv("TASK_TTL") == null ?
                 2000 : Integer.parseInt(System.getenv("TASK_TTL"));
