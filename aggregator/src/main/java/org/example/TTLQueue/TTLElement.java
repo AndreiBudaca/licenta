@@ -13,8 +13,6 @@ public class TTLElement<T extends TTLFindable<K>, K> {
         return element.hasIdentifier(id);
     }
 
-    public K getIdentifier() { return element.getIdentifier(); }
-
     public T getElement() {
         return element;
     }

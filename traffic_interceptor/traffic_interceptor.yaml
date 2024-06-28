@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: traffic-interceptor
+spec:
+  containers:
+    - name: traffic-interceptor
+      image: andreibudaca/traffic_interceptor:1.0
+      env:
+        - name: REDIS_INPUT
+          value: "traffic_interceptor_command"
+        - name: REDIS_TASK_ALERT
+          value: "task_alert"
+        - name: REDIS_LOG
+          value: "logs"

@@ -24,14 +24,14 @@ public class RedisCommunication {
         jedis.rpush(EnvConfiguration.outputQueue, String.format("%d %s", task.getIdentifier(), task.getTaskDecision().name()));
 
         if (isPartial) {
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator partial response %s", task.getIdentifier(), task.getTaskDecision().name()));
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator partial time %d", task.getIdentifier(), System.currentTimeMillis()));
+            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d partial_response %s", task.getIdentifier(),
+                   System.currentTimeMillis(), task.getTaskDecision().name()));
         }
         else {
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator final response %s", task.getIdentifier(), task.getTaskDecision().name()));
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator final time %d", task.getIdentifier(), System.currentTimeMillis()));
+            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d final_response %s", task.getIdentifier(),
+                    System.currentTimeMillis(), task.getTaskDecision().name()));
 
-            StringBuilder builder = new StringBuilder(String.format("%d aggregator final weights", task.getIdentifier()));
+            StringBuilder builder = new StringBuilder(String.format("%d aggregator %d final_weights", task.getIdentifier(), System.currentTimeMillis()));
             for (String voter: weights.keySet()) {
                 builder.append(String.format(" %s:%f", voter, weights.get(voter)));
             }
@@ -40,7 +40,7 @@ public class RedisCommunication {
     }
 
     public void logNewTask(int taskId) {
-        jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator new time %d", taskId, System.currentTimeMillis()));
+        jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d new_time", taskId, System.currentTimeMillis()));
     }
 
     public List<String> getMessage(String... inputQueue) {

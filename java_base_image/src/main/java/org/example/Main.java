@@ -37,8 +37,10 @@ public class Main {
                 long endTime = System.currentTimeMillis();
 
                 comm.sendMessage(String.format("%d;%s;%s", taskId, faasName, result));
-                comm.sendLog(String.format("%d %s result %s", taskId, faasName, result));
-                comm.sendLog(String.format("%d %s processing_time %d", taskId, faasName, (endTime - initialTime)));
+                comm.sendLog(String.format("%d faas %d %s result %s", taskId, System.currentTimeMillis(),
+                        faasName, result));
+                comm.sendLog(String.format("%d faas %d %s processing_time %d", taskId, System.currentTimeMillis(),
+                        faasName, (endTime - initialTime)));
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }

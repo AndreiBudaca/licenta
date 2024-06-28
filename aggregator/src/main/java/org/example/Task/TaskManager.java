@@ -8,13 +8,18 @@ public class TaskManager {
     private final HashMap<String, Double> weights = new HashMap<>();
     private final HashMap<String, Double> voteErrors = new HashMap<>();
     private final HashMap<String, Integer> totalVotes = new HashMap<>();
-    private int voters = 0;
+    public static int voters = 0;
 
     public HashMap<String, Double> getWeights() {
         return weights;
     }
 
     public Task updateTask(Task task, TaskVote taskVote) {
+        if (!weights.containsKey(taskVote.getVoter())) {
+            System.out.println("Voter not found!");
+            return task;
+        }
+
         double weight = weights.get(taskVote.getVoter());
         List<String> newVoters = task.getVoters();
         newVoters.add(taskVote.getVoter());
@@ -22,11 +27,12 @@ public class TaskManager {
         newVotes.add(taskVote.getTrust());
 
         if (weight == 0) {
-            return new Task(task.getIdentifier(), task.getTrust(), newVoters, newVotes);
+            return new Task(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(), newVoters, newVotes);
         }
 
-        if (task.getVoters().isEmpty()) {
-            return new Task(task.getIdentifier(), taskVote.getTrust(), newVoters, newVotes);
+        // Current vote is the only one
+        if (task.getVoters().size() == 1) {
+            return new Task(task.getIdentifier(), taskVote.getTrust(), task.getRequiredVotes(), newVoters, newVotes);
         }
 
         double currentVotersWeightSum = 0.0;
@@ -36,27 +42,27 @@ public class TaskManager {
 
         double newTrust = currentVotersWeightSum / (currentVotersWeightSum + weight) * task.getTrust()
                 + taskVote.getTrust() / (currentVotersWeightSum + weight);
-        return new Task(task.getIdentifier(), newTrust, newVoters, newVotes);
+        return new Task(task.getIdentifier(), newTrust, task.getRequiredVotes(), newVoters, newVotes);
     }
 
     public ConcludedTask givPartialVerdict(Task task) {
-        return new ConcludedTask(task.getIdentifier(), task.getTrust(),
-                task.getVoters(), task.getVotes(), task.getTrust() > 0.5 ? TaskDecision.Normal : TaskDecision.Hostile);
+        return new ConcludedTask(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(),
+                task.getVoters(), task.getVotes(), task.getTrust() >= EnvConfiguration.minTrust ? TaskDecision.Normal : TaskDecision.Hostile);
     }
 
     public ConcludedTask giveFinalVerdict(Task task) {
         double finalTrust = updateWeights(task);
 
-        return new ConcludedTask(task.getIdentifier(), finalTrust,
-                task.getVoters(), task.getVotes(), finalTrust > 0.5 ? TaskDecision.Normal : TaskDecision.Hostile);
+        return new ConcludedTask(task.getIdentifier(), finalTrust, task.getRequiredVotes(),
+                task.getVoters(), task.getVotes(), finalTrust >= EnvConfiguration.minTrust ? TaskDecision.Normal : TaskDecision.Hostile);
     }
 
     public boolean canGivePartialVerdict(Task task) {
-        return task.getTrust() >= 0.5;
+        return task.getTrust() >= EnvConfiguration.minTrust;
     }
 
     public boolean canGiveFinalVerdict(Task task) {
-        return task.getVoters().size() == voters;
+        return task.getVoters().size() >= task.getRequiredVotes();
     }
 
     public void addVoter(String name) {
@@ -66,7 +72,6 @@ public class TaskManager {
         } else {
             weights.put(name, 1.0);
         }
-
         voteErrors.put(name, 0.0);
         totalVotes.put(name, 0);
     }
@@ -79,6 +84,8 @@ public class TaskManager {
     }
 
     private double updateWeights(Task task) {
+        if (task.getVoters().size() < 2) return task.getTrust();
+
         double lastTrust = -100;
         double currentTrust = task.getTrust();
 
@@ -132,5 +139,8 @@ public class TaskManager {
     private static class EnvConfiguration {
         public final static double weightEps = System.getenv("WEIGHT_EPS") == null ?
         .01 : Double.parseDouble(System.getenv("WEIGHT_EPS"));
+
+        public final static double minTrust = System.getenv("MIN_TRUST") == null ?
+        .5 : Double.parseDouble(System.getenv("MIN_TRUST"));
     }
 }

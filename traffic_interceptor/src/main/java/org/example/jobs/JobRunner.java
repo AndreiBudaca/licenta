@@ -16,19 +16,19 @@ public class JobRunner {
     private boolean working = true;
     private ConcurrentLinkedQueue<Job> jobs;
     private final Random random;
-    private final Object lock;
+    private final Object lock = new Object();
 
     public JobRunner() {
         this.redis = new RedisCommunication();
         this.random = new Random();
         jobs = new ConcurrentLinkedQueue<>();
-        lock = new Object();
 
         new Thread(this::run).start();
     }
 
     public void schedule(Job job) {
         jobs.add(job);
+
         synchronized (lock) {
             lock.notify();
         }
@@ -42,8 +42,11 @@ public class JobRunner {
         while (working) {
             if (jobs.isEmpty()) {
                 try {
-                    lock.wait();
+                    synchronized (lock) {
+                        lock.wait();
+                    }
                 } catch (Exception e) {
+                    System.out.println(e.getMessage());
                     System.out.println("Failed to wait for new job");
                     continue;
                 }
@@ -61,7 +64,8 @@ public class JobRunner {
             long currentTime = System.currentTimeMillis();
             int taskId = random.nextInt();
 
-            redis.sendLog(String.format("%d %d", taskId, currentTime));
+            redis.sendLog(String.format("%d traffic_interceptor %d", taskId, currentTime));
+            redis.sendAlert(taskId);
 
             for (RunningModule module : ModuleConfiguration.runningModules) {
                 sendData(module, taskId);

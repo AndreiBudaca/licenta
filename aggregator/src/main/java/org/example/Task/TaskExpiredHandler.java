@@ -8,15 +8,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TaskExpiredHandler implements TTLElementHandler<Task> {
     private final TaskManager taskManager;
     private final ConcurrentLinkedQueue<ConcludedTask> conclusionedTasks;
-
-    private final RedisCommunication redis;
+    private final RedisCommunication redis = new RedisCommunication();
 
     public TaskExpiredHandler(TaskManager taskManager,
-                              ConcurrentLinkedQueue<ConcludedTask> concludedTasks,
-                              RedisCommunication redis) {
+                              ConcurrentLinkedQueue<ConcludedTask> concludedTasks) {
         this.conclusionedTasks = concludedTasks;
         this.taskManager = taskManager;
-        this.redis = redis;
     }
 
     @Override
