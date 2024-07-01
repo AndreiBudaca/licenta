@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: td-random-decision
+spec:
+  serviceAccount: task-dispacher
+  containers:
+    - name: task-dispatcher
+      image: andreibudaca/task_dispatcher:2.0
+      env:
+        - name: REDIS_INPUT
+          value: "td-random-decision"
+        - name: REDIS_LOG
+          value: "logs"
+        - name: FAAS_NAMESPACE
+          value: "default"
+        - name: FAAS_IMAGE
+          value: "andreibudaca/java_echo:2.0"
+        - name: FAAS_REDIS_OUTPUT
+          value: "random-decision"
+        - name: FAAS_REDIS_LOG
+          value: "logs"
+        - name: MIN_FASS_REPLICA
+          value: "1"
+        - name: MAX_FASS_REPLICA
+          value: "50"
+        - name: FAAS_NAME
+          value: "optimal-instances"
+        - name: LOAD_BALANCER
+          value: "optimal"
+        - name: SCALE_PERCENTAGE
+          value: ".1"
+        - name: LOAD_BALANCE_TIME
+          value: "2000"
+        - name: MEASUREMENTS_THRESHOLD
+          value: "20"
+        - name: PENALTY_PERCENTAGE
+          value: "1.1"
+        - name: STREAK_THRESHOLD
+          value: "20"
+        - name: MAX_QUEUE_LENGTH
+          value: "10"
+
+

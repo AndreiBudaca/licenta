@@ -27,12 +27,12 @@ public class TaskManager {
         newVotes.add(taskVote.getTrust());
 
         if (weight == 0) {
-            return new Task(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(), newVoters, newVotes);
+            return new Task(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(), task.getTimestamp(), newVoters, newVotes);
         }
 
         // Current vote is the only one
         if (task.getVoters().size() == 1) {
-            return new Task(task.getIdentifier(), taskVote.getTrust(), task.getRequiredVotes(), newVoters, newVotes);
+            return new Task(task.getIdentifier(), taskVote.getTrust(), task.getRequiredVotes(), task.getTimestamp(), newVoters, newVotes);
         }
 
         double currentVotersWeightSum = 0.0;
@@ -42,18 +42,18 @@ public class TaskManager {
 
         double newTrust = currentVotersWeightSum / (currentVotersWeightSum + weight) * task.getTrust()
                 + taskVote.getTrust() / (currentVotersWeightSum + weight);
-        return new Task(task.getIdentifier(), newTrust, task.getRequiredVotes(), newVoters, newVotes);
+        return new Task(task.getIdentifier(), newTrust, task.getRequiredVotes(), task.getTimestamp(), newVoters, newVotes);
     }
 
-    public ConcludedTask givPartialVerdict(Task task) {
-        return new ConcludedTask(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(),
+    public ConcludedTask givePartialVerdict(Task task) {
+        return new ConcludedTask(task.getIdentifier(), task.getTrust(), task.getRequiredVotes(), task.getTimestamp(),
                 task.getVoters(), task.getVotes(), task.getTrust() >= EnvConfiguration.minTrust ? TaskDecision.Normal : TaskDecision.Hostile);
     }
 
     public ConcludedTask giveFinalVerdict(Task task) {
         double finalTrust = updateWeights(task);
 
-        return new ConcludedTask(task.getIdentifier(), finalTrust, task.getRequiredVotes(),
+        return new ConcludedTask(task.getIdentifier(), finalTrust, task.getRequiredVotes(), task.getTimestamp(),
                 task.getVoters(), task.getVotes(), finalTrust >= EnvConfiguration.minTrust ? TaskDecision.Normal : TaskDecision.Hostile);
     }
 
@@ -103,6 +103,7 @@ public class TaskManager {
                 moduleErrors[i] = votes / (votes + 1) * voteErrors.get(voterName) +
                         (currentTrust - vote) * (currentTrust - vote) / (votes + 1);
 
+                if (moduleErrors[i] == 0) moduleErrors[i] = EnvConfiguration.weightEps / (votes + 1);
                 errorSum += moduleErrors[i];
             }
 

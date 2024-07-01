@@ -59,6 +59,7 @@ public class AsyncQueueObserverLoadBalancer {
         receivedMessages = 0;
 
         int currentReplica = kube.getActiveReplicaCount();
+        if (currentReplica == 0) return 0;
         long processedMessages = messagesSinceLastBalance + lastWaitingMessages - waitingMessages;
         double currentAverageRequestsPerInstance = (double) processedMessages / (double) currentReplica;
 

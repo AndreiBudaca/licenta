@@ -46,7 +46,7 @@ public class RedisCommunication implements Communication {
                 System.getenv("REDIS_SERVICE_PORT");
 
         public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
-                "faas_input" : System.getenv("REDIS_INPUT");
+                "good-analysis2" : System.getenv("REDIS_INPUT");
 
         public final static String outputQueue = System.getenv("REDIS_OUTPUT") == null ?
                 "faas_output" : System.getenv("REDIS_OUTPUT");

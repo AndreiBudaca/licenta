@@ -7,6 +7,6 @@ public class TaskMapper {
     }
 
     public static Task taskFromTaskAlert(String taskString) {
-        return new Task(Integer.parseInt(taskString), 0.0, TaskManager.voters);
+        return new Task(Integer.parseInt(taskString), 0.0, TaskManager.voters, System.currentTimeMillis());
     }
 }

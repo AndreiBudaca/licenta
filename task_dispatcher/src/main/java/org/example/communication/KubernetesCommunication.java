@@ -11,6 +11,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class KubernetesCommunication {
     private final AppsV1Api api;
@@ -46,12 +47,12 @@ public class KubernetesCommunication {
     }
 
     public int updateDeploymentReplicas(int difference) throws ApiException {
-        //if (difference < 2) return getFaasDeployment().getStatus().getAvailableReplicas();
-
         V1Deployment deployment = getFaasDeployment();
         if (deployment == null) return 0;
+        Integer currentReplica = deployment.getStatus().getAvailableReplicas();
+        if (currentReplica == null) return 0;
 
-        int newReplica = deployment.getStatus().getAvailableReplicas() + difference;
+        int newReplica = currentReplica + difference;
 
         if (newReplica < EnvConfiguration.minFaasReplica) {
             if (deployment.getStatus().getAvailableReplicas() != EnvConfiguration.minFaasReplica) {
@@ -93,7 +94,9 @@ public class KubernetesCommunication {
         V1Deployment deployment = getFaasDeployment();
         if (deployment == null) return 0;
 
-        return deployment.getStatus().getAvailableReplicas();
+        Integer replicas = deployment.getStatus().getAvailableReplicas();
+        if (replicas == null) return 0;
+        return replicas;
     }
 
     private V1Deployment getFaasDeployment() throws ApiException {
@@ -186,7 +189,22 @@ public class KubernetesCommunication {
         api.createNamespacedDeployment(EnvConfiguration.faasNamespace, d, null, null, null, null);
         System.out.println("Faas deployment created: " + d.getMetadata().getName());
 
-        return d;
+        List<V1Deployment> items;
+        do {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            items = api.listNamespacedDeployment(EnvConfiguration.faasNamespace,
+                            null, null, null, null,
+                            "app=" + d.getMetadata().getLabels().get("app"),
+                            null, null, null, null, null)
+                    .getItems();
+        }while (items == null || items.isEmpty());
+
+        return items.getFirst();
     }
 
     private static class EnvConfiguration {
@@ -194,7 +212,7 @@ public class KubernetesCommunication {
                 "default" : System.getenv("FAAS_NAMESPACE");
 
         public final static String faasImage = System.getenv("FAAS_IMAGE") == null ?
-                "andreibudaca/java_echo:1.0" : System.getenv("FAAS_IMAGE");
+                "andreibudaca/java_echo:2.0" : System.getenv("FAAS_IMAGE");
 
         public final static String faasRedisOutput = System.getenv("FAAS_REDIS_OUTPUT") == null ?
                 "faas_output" : System.getenv("FAAS_REDIS_OUTPUT");

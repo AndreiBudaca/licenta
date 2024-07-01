@@ -3,9 +3,10 @@ kind: Pod
 metadata:
   name: traffic-interceptor
 spec:
+  restartPolicy: OnFailure
   containers:
     - name: traffic-interceptor
-      image: andreibudaca/traffic_interceptor:1.0
+      image: andreibudaca/traffic_interceptor:2.0
       env:
         - name: REDIS_INPUT
           value: "traffic_interceptor_command"

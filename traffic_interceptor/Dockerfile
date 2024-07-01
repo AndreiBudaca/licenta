@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM openjdk:21-jdk
 
 COPY target/Traffic_Interceptor-1.0-SNAPSHOT-jar-with-dependencies.jar app.jar
 

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aggregator
+spec:
+  containers:
+    - name: aggregator
+      image: andreibudaca/aggregator:1.0
+      env:
+        - name: REDIS_OUTPUT
+          value: "result"
+        - name: REDIS_TASK_ALERT
+          value: "task_alert"
+        - name: REDIS_LOG
+          value: "logs"
+        - name: REDIS_FAAS_INPUT
+          value: "faas_output"
+        - name: REDIS_CONFIG
+          value: "aggregator_config"
+        - name: TASK_TTL
+          value: "5000"
+        - name: MAX_TASKS
+          value: "200000"
+        - name: WEIGHT_EPS
+          value: "0.01"
+        - name: MIN_TRUST
+          value: "0.5"

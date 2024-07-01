@@ -24,12 +24,12 @@ public class RedisCommunication {
         jedis.rpush(EnvConfiguration.outputQueue, String.format("%d %s", task.getIdentifier(), task.getTaskDecision().name()));
 
         if (isPartial) {
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d partial_response %s", task.getIdentifier(),
-                   System.currentTimeMillis(), task.getTaskDecision().name()));
+            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d partial_response %s %d", task.getIdentifier(),
+                   System.currentTimeMillis(), task.getTaskDecision().name(), System.currentTimeMillis() - task.getTimestamp()));
         }
         else {
-            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d final_response %s", task.getIdentifier(),
-                    System.currentTimeMillis(), task.getTaskDecision().name()));
+            jedis.rpush(EnvConfiguration.logsQueue, String.format("%d aggregator %d final_response %s %d", task.getIdentifier(),
+                    System.currentTimeMillis(), task.getTaskDecision().name(), System.currentTimeMillis() - task.getTimestamp()));
 
             StringBuilder builder = new StringBuilder(String.format("%d aggregator %d final_weights", task.getIdentifier(), System.currentTimeMillis()));
             for (String voter: weights.keySet()) {

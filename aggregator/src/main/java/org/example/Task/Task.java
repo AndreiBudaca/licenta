@@ -9,21 +9,24 @@ public class Task implements TTLFindable<Integer> {
     private final int id;
     private final double trust;
     private final int requiredVotes;
+    private final long timestamp;
     private final List<String> voters;
     private final List<Double> votes;
 
-    public Task(int id, double trust, int requiredVotes) {
+    public Task(int id, double trust, int requiredVotes, long timestamp) {
         this.id = id;
         this.trust = trust;
         this.requiredVotes = requiredVotes;
+        this.timestamp = timestamp;
         this.voters = new ArrayList<>();
         this.votes = new ArrayList<>();
     }
 
-    public Task(int id, double trust, int requiredVotes, List<String> voters, List<Double> votes) {
+    public Task(int id, double trust, int requiredVotes, long timestamp, List<String> voters, List<Double> votes) {
         this.id = id;
         this.trust = trust;
         this.requiredVotes = requiredVotes;
+        this.timestamp = timestamp;
         this.voters = voters;
         this.votes = votes;
     }
@@ -42,6 +45,10 @@ public class Task implements TTLFindable<Integer> {
 
     public int getRequiredVotes() {
         return requiredVotes;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     @Override

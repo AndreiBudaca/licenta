@@ -27,13 +27,12 @@ public class Main {
                 if (Objects.equals(message, "quit")) break;
 
                 long initialTime = System.currentTimeMillis();
-
+                System.out.println(message);
                 String[] messageBits = message.split(";", 3);
 
                 String faasName = messageBits[0];
                 int taskId = Integer.parseInt(messageBits[1]);
                 String result = processing.process(messageBits[2]);
-
                 long endTime = System.currentTimeMillis();
 
                 comm.sendMessage(String.format("%d;%s;%s", taskId, faasName, result));

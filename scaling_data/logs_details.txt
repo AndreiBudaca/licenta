@@ -1,5 +1,0 @@
-1: Producer: publish_time = 70ms +- 10ms, Task_Dispacher: streakDecisionThreshold = 20, maxQueueLength = 10, all streak types
-2: Producer: publish_time = 70ms +- 10ms, Task_Dispacher: streakDecisionThreshold = 20, maxQueueLength = 10, no zero streak
-3: Producer: publish_time = 10ms +- 5ms, Task_Dispacher: streakDecisionThreshold = 20, maxQueueLength = 10, no zero streak
-4: Producer: publish_time = 10ms +- 5ms, Task_Dispacher: streakDecisionThreshold = 20, maxQueueLength = 10, all streak types
-5: Producer: publish_time = 10ms +- 5ms, Task_Dispacher: streakDecisionThreshold = 120, maxQueueLength = 10, all streak types

@@ -20,7 +20,7 @@ public class Main {
         RedisCommunication redis = new RedisCommunication(faasName);
         KubernetesCommunication kube = new KubernetesCommunication(faasName);
 
-        TaskHandler handler = Objects.equals(System.getenv("LOAD_BALANCER"), "rules") ?
+        TaskHandler handler = Objects.equals(EnvConfiguration.loadBalancer, "rules") ?
                 new QueueLenghtTaskHandler(new QueueLengthLoadBalancer()) :
                 new AsyncQueueObserverTaskHandler(new AsyncQueueObserverLoadBalancer(faasName, kube));
 
@@ -30,6 +30,9 @@ public class Main {
 
     private static class EnvConfiguration {
         public final static String faasName = System.getenv("FAAS_NAME") == null ?
-                "faas" : System.getenv("FAAS_NAME");
+                "optimal-instances" : System.getenv("FAAS_NAME");
+
+        public final static String loadBalancer = System.getenv("LOAD_BALANCER") == null ?
+                "as" : System.getenv("LOAD_BALANCER");
     }
 }

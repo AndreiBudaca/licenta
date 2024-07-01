@@ -73,25 +73,27 @@ class AggregatorNewRequestData:
 
 
 class AggregatorPartialResponseData:
-    def __init__(self, taskId, timestamp, verdict):
+    def __init__(self, taskId, timestamp, verdict, decisionTime):
         self.taskId = taskId
         self.timestamp = timestamp
         self.verdict = verdict
+        self.decisionTime = decisionTime
 
     @staticmethod
     def parse(bits):
-        return AggregatorPartialResponseData(int(bits[0]), int(bits[2]), bits[4])
+        return AggregatorPartialResponseData(int(bits[0]), int(bits[2]), bits[4], int(bits[5]))
 
 
 class AggregatorFinalResponseData:
-    def __init__(self, taskId, timestamp, verdict):
+    def __init__(self, taskId, timestamp, verdict, decisionTime):
         self.taskId = taskId
         self.timestamp = timestamp
         self.verdict = verdict
+        self.decisionTime = decisionTime
 
     @staticmethod
     def parse(bits):
-        return AggregatorFinalResponseData(int(bits[0]), int(bits[2]), bits[4])
+        return AggregatorFinalResponseData(int(bits[0]), int(bits[2]), bits[4], int(bits[5]))
 
 
 class AggregatorWeightsData:
@@ -147,7 +149,7 @@ class SlidingVector:
 
 class LogCollector:
     timestamp = int(time.time() * 1000)
-    logsSize = 200
+    logsSize = 1000
     logs = {
         "traffic_interceptor": SlidingVector(logsSize, []),
         "task_dispatcher_replicas": SlidingVector(logsSize, []),
@@ -208,18 +210,24 @@ class LogCollector:
 
     @staticmethod
     def getLogs(r: redis.Redis):
+        maxReads = 1000
         while LogCollector.collecting:
             messages = []
             message = r.lpop("logs")
+            reads = 0
             while message is not None:
                 messages.append(message)
                 message = r.lpop("logs")
+                reads += 1
+                if reads == maxReads:
+                    break
 
             currentData = LogCollector.getData(messages)
             for key in currentData.keys():
                 LogCollector.logs[key].appendArray(currentData[key])
 
-            time.sleep(.1)
+            if reads < maxReads:
+                time.sleep(1)
 
     @staticmethod
     def startCollecting(r: redis.Redis):

@@ -18,7 +18,7 @@ public class TaskExpiredHandler implements TTLElementHandler<Task> {
 
     @Override
     public void handleElement(Task task) {
-        ConcludedTask partialVerdict = taskManager.givPartialVerdict(task);
+        ConcludedTask partialVerdict = taskManager.givePartialVerdict(task);
         redis.sendTask(partialVerdict, null, true);
         conclusionedTasks.add(partialVerdict);
     }

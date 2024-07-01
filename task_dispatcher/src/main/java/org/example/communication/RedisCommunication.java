@@ -46,7 +46,7 @@ public class RedisCommunication {
                 System.getenv("REDIS_SERVICE_PORT");
 
         public final static String inputQueue = System.getenv("REDIS_INPUT") == null ?
-                "task_dispatcher" : System.getenv("REDIS_INPUT");
+                "good-analysis2" : System.getenv("REDIS_INPUT");
 
         public final static String logQueue = System.getenv("REDIS_LOG") == null ?
                 "logs" : System.getenv("REDIS_LOG");

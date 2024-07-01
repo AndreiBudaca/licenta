@@ -12,7 +12,7 @@ public class StairDelay extends Delay {
 
     @Override
     protected double getBaseValue(double requestPercent) {
-        int index = Math.max((int)(requestPercent * baseValues.length), baseValues.length - 1);
+        int index = Math.min((int)(requestPercent * baseValues.length), baseValues.length - 1);
         return baseValues[index];
     }
 }

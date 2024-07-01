@@ -55,7 +55,7 @@ public class Aggregator {
                     // Else, put the task back into the concluded  task queue
                     else {
                         concludedTasks.add(new ConcludedTask(updatedTask.getIdentifier(), updatedTask.getTrust(), updatedTask.getRequiredVotes(),
-                                updatedTask.getVoters(), updatedTask.getVotes(), concludedTask.getTaskDecision()));
+                                updatedTask.getTimestamp(), updatedTask.getVoters(), updatedTask.getVotes(), concludedTask.getTaskDecision()));
                     }
                 }
                 else {
@@ -67,12 +67,12 @@ public class Aggregator {
                         redis.sendTask(concludedTask, taskManager.getWeights(), false);
                     } else if (taskManager.canGivePartialVerdict(updatedTask)) {
                         activeTasks.deleteElement(updatedTask.getIdentifier());
-                        ConcludedTask partialVerdict = taskManager.givPartialVerdict(updatedTask);
+                        ConcludedTask partialVerdict = taskManager.givePartialVerdict(updatedTask);
 
                         redis.sendTask(partialVerdict, null, true);
 
                         concludedTasks.add(new ConcludedTask(partialVerdict.getIdentifier(), partialVerdict.getTrust(), partialVerdict.getRequiredVotes(),
-                                partialVerdict.getVoters(), partialVerdict.getVotes(), partialVerdict.getTaskDecision()));
+                                partialVerdict.getTimestamp(), partialVerdict.getVoters(), partialVerdict.getVotes(), partialVerdict.getTaskDecision()));
                     }
                     else {
                         activeTasks.updateElement(updatedTask);
@@ -112,7 +112,7 @@ public class Aggregator {
                 "aggregator_config" : System.getenv("REDIS_CONFIG");
 
         public final static int taskTTL = System.getenv("TASK_TTL") == null ?
-                1000 : Integer.parseInt(System.getenv("TASK_TTL"));
+                5000 : Integer.parseInt(System.getenv("TASK_TTL"));
 
         public final static int maxActiveTasks = System.getenv("MAX_TASKS") == null ?
                 200000 : Integer.parseInt(System.getenv("MAX_TASKS"));

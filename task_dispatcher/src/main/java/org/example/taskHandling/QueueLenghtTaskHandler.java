@@ -25,11 +25,10 @@ public class QueueLenghtTaskHandler implements TaskHandler {
                 String messageBody = message.get(1);
                 if (Objects.equals(messageBody, "quit")) break;
 
-                redis.sendMessage(messageBody);
+                redis.sendMessage(String.format("%s;%s", faasName, messageBody));
             }
 
             long outputQueueLength = redis.getOutputQueueLength();
-            System.out.println("Queue length: " + outputQueueLength);
             int balanceDifference = balancer.balance(outputQueueLength);
 
             try {
@@ -53,6 +52,7 @@ public class QueueLenghtTaskHandler implements TaskHandler {
                 System.err.println(e.getMessage());
                 System.err.println(e.getCode());
                 System.err.println(e.getResponseBody());
+                break;
             }
         }
     }

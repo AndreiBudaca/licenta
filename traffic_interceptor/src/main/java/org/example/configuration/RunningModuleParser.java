@@ -11,7 +11,6 @@ public class RunningModuleParser {
         int[] layers = new int[layersString.length];
         for (int i = 0; i < layersString.length; i++) {
             layers[i] = Integer.parseInt(layersString[i]);
-            System.out.println(layers[i]);
         }
 
         return new RunningModule(name, queue, layers);

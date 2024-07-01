@@ -1,4 +1,4 @@
-FROM andreibudaca/java_base_image:1.0
+FROM andreibudaca/java_base_image:2.0
 
 ENV FAAS_MAIN_CLASS "org.faas.Main"
 ENV FAAS_MAIN_METHOD "echo"
