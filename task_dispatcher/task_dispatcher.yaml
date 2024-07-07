@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: td-random-decision
+  name: td-optimal-instances
 spec:
   serviceAccount: task-dispacher
   containers:
@@ -9,7 +9,7 @@ spec:
       image: andreibudaca/task_dispatcher:2.0
       env:
         - name: REDIS_INPUT
-          value: "td-random-decision"
+          value: "td-optimal-instances"
         - name: REDIS_LOG
           value: "logs"
         - name: FAAS_NAMESPACE
@@ -17,7 +17,7 @@ spec:
         - name: FAAS_IMAGE
           value: "andreibudaca/java_echo:2.0"
         - name: FAAS_REDIS_OUTPUT
-          value: "random-decision"
+          value: "faas_output"
         - name: FAAS_REDIS_LOG
           value: "logs"
         - name: MIN_FASS_REPLICA

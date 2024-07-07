@@ -149,7 +149,7 @@ class SlidingVector:
 
 class LogCollector:
     timestamp = int(time.time() * 1000)
-    logsSize = 1000
+    logsSize = 10
     logs = {
         "traffic_interceptor": SlidingVector(logsSize, []),
         "task_dispatcher_replicas": SlidingVector(logsSize, []),
